@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const OrderCompleteScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.checkmarkContainer}>
-        <Text style={styles.checkmark}>✔</Text>
+        <Ionicons name="checkmark" size={60} color="#fff" />
       </View>
       <Text style={styles.title}>Congratulations!!!</Text>
       <Text style={styles.subtitle}>Your order have been taken and is being attended to</Text>
@@ -35,31 +36,30 @@ const styles = StyleSheet.create({
   },
   checkmarkContainer: {
     backgroundColor: '#00FF00',
-    borderRadius: 50,
-    width: 100,
-    height: 100,
+    borderRadius: 75,
+    width: 150,
+    height: 150,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
-  checkmark: {
-    fontSize: 50,
-    color: '#fff',
-  },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
+    color: '#00008B', // Đổi màu thành xanh đậm
+    textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#000', // Đổi màu thành đen
     textAlign: 'center',
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#FF8C00',
-    padding: 15,
+    backgroundColor: '#FF9F43', // Đổi màu thành cam
+    paddingVertical: 15,
+    paddingHorizontal: 40,
     borderRadius: 10,
     marginVertical: 10,
   },
@@ -67,17 +67,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   buttonSecondary: {
-    borderColor: '#FF8C00',
+    borderColor: '#FF9F43', // Đổi màu viền thành cam
     borderWidth: 1,
-    padding: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 40,
     borderRadius: 10,
   },
   buttonSecondaryText: {
-    color: '#FF8C00',
+    color: '#FF9F43', // Đổi màu chữ thành cam
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

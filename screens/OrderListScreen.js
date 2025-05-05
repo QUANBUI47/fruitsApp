@@ -1,111 +1,178 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View, FlatList, SafeAreaView, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useBasket } from './BasketContext';
 
-const OrderListScreen = ({ route, navigation }) => {
-  const [orders, setOrders] = useState(route.params?.item ? [{ ...route.params.item, quantity: route.params.quantity }] : []);
+export default function OrderListScreen() {
+  const { basket } = useBasket();
+  const navigation = useNavigation();
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Image source={item.image} style={styles.cardImage} />
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{item.name}</Text>
-        <Text style={styles.cardPrice}>{item.price}</Text>
-        <Text style={styles.cardQuantity}>{item.quantity}packs</Text>
+  const calculateTotal = () => {
+    return basket.reduce((total, item) => {
+      const price = parseFloat(item.price.replace('₦ ', '').replace(',', ''));
+      return total + price * item.quantity;
+    }, 0);
+  };
+
+  const renderOrderItem = ({ item }) => (
+    <View style={styles.orderItem}>
+      <Image source={item.image} style={styles.orderImage} />
+      <View style={styles.orderDetails}>
+        <Text style={styles.orderName}>{item.name}</Text>
+        <Text style={styles.orderQuantity}>{item.quantity} packs</Text>
       </View>
-      <TouchableOpacity onPress={() => setOrders(orders.filter((order) => order.id !== item.id))}>
-        <Text style={styles.removeButton}>X</Text>
-      </TouchableOpacity>
+      <Text style={styles.orderPrice}>{item.price}</Text>
     </View>
   );
-
-  const total = orders.reduce((sum, order) => sum + parseInt(order.price.replace('₦', '').replace(',', '')) * order.quantity, 0);
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>Go back</Text>
-      </TouchableOpacity>
-      <Text style={styles.title}>My Basket</Text>
-      <FlatList
-        data={orders}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-      />
-      <Text style={styles.total}>Total: ₦{total}</Text>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('CompleteDetails', { orders })}
-      >
-        <Text style={styles.buttonText}>Checkout</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles.container}>
+      {/* StatusBar để điều chỉnh cho notch/hole-punch */}
+      <StatusBar barStyle="light-content" backgroundColor="#FF9F43" />
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Text style={styles.backText}>Go back</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>My Basket</Text>
+      </View>
+
+      {/* Danh sách đơn hàng */}
+      {basket.length === 0 ? (
+        <Text style={styles.emptyText}>Your basket is empty.</Text>
+      ) : (
+        <View style={styles.orderListContainer}>
+          <FlatList
+            data={basket}
+            renderItem={renderOrderItem}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.orderList}
+          />
+          <View style={styles.totalContainer}>
+            <Text style={styles.totalText}>Total: ₦ {calculateTotal().toLocaleString()}</Text>
+            <TouchableOpacity
+              style={styles.checkoutButton}
+              onPress={() => navigation.navigate('CompleteDetails')}
+            >
+              <Text style={styles.checkoutText}>Checkout</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FF8C00',
-    padding: 20,
+    backgroundColor: '#fff',
+    // Thêm paddingTop để tránh notch/hole-punch trên Android
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
+  },
+  header: {
+    backgroundColor: '#FF9F43',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    alignItems: 'center',
+    // Điều chỉnh paddingTop cho notch/hole-punch trên Vivo T1
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 40,
+    elevation: 4, // Thêm shadow cho Android
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'absolute',
+    left: 15,
+    top: Platform.OS === 'android' ? 10 : 15, // Điều chỉnh cho Vivo T1
   },
   backText: {
+    marginLeft: 5,
     fontSize: 16,
-    color: '#000',
-    marginBottom: 20,
+    color: '#fff',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#000',
+    textAlign: 'center',
+    marginTop: 5,
   },
-  card: {
+  emptyText: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  orderListContainer: {
+    flex: 1,
+    paddingHorizontal: 15,
+    // Thêm paddingBottom để tránh tràn lên thanh điều hướng
+    paddingBottom: Platform.OS === 'android' ? 20 : 10,
+  },
+  orderList: {
+    flexGrow: 1,
+  },
+  orderItem: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
     alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#FFF2E7',
+    borderRadius: 10,
+    marginVertical: 5,
+    paddingHorizontal: 10,
   },
-  cardImage: {
+  orderImage: {
     width: 50,
     height: 50,
+    borderRadius: 5,
+    marginRight: 10,
   },
-  cardContent: {
+  orderDetails: {
     flex: 1,
-    marginLeft: 10,
   },
-  cardTitle: {
+  orderName: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000',
   },
-  cardPrice: {
+  orderQuantity: {
     fontSize: 14,
-    color: '#666',
+    color: '#888',
+    marginTop: 2,
   },
-  cardQuantity: {
-    fontSize: 14,
-    color: '#666',
+  orderPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
   },
-  removeButton: {
-    fontSize: 20,
-    color: '#FF0000',
+  totalContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    // Thêm paddingBottom để tránh tràn lên thanh điều hướng
+    paddingBottom: Platform.OS === 'android' ? 10 : 5,
   },
-  total: {
+  totalText: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginVertical: 20,
+    color: '#000',
   },
-  button: {
-    backgroundColor: '#FF8C00',
-    padding: 15,
+  checkoutButton: {
+    backgroundColor: '#FF9F43',
     borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
-  buttonText: {
-    color: '#fff',
+  checkoutText: {
     fontSize: 16,
     fontWeight: 'bold',
-    textAlign: 'center',
+    color: '#fff',
   },
 });
-
-export default OrderListScreen;
